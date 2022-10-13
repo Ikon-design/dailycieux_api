@@ -41,11 +41,9 @@ app.post('/api/user/create', async (req, res) => {
 
 app.get('/api/user/:id', async (req, res) => {
   const id = req.params.id;
-  console.log(id);
   const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
   try {
     const response = await client.db(dbName).collection('users').findOne({ _id: new mongodb.ObjectId(id) });
-    console.log(response);
     res.send(response);
   } catch (error) {
     return res.send(JSON.stringify({ error: 'Invalid value for id' }));
@@ -54,8 +52,7 @@ app.get('/api/user/:id', async (req, res) => {
 
 app.post('/api/points/win', async (req, res) => {
   const { id, points } = req.body;
-  if (points === null || points === NaN || typeof points != 'number') { return res.send(JSON.stringify({ error: 'Invalid value for points' })); }
-  console.log(id, points, req.body);
+  if (points === null || points === NaN ) { return res.send(JSON.stringify({ error: 'Invalid value for points' })); }
   try {
     const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
     const getUser = await client.db(dbName).collection('users').findOne({ _id: new mongodb.ObjectId(id) });
@@ -117,7 +114,6 @@ app.get('/api/events/getAllById/:id', async (req, res) => {
 });
 
 app.get('/api/shop/getAll', async (req, res) => {
-  console.log("response");
   const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
   const response = await client.db(dbName).collection('shop').find({}).toArray();
   res.send(response);
@@ -126,7 +122,6 @@ app.get('/api/shop/getAll', async (req, res) => {
 app.post('/api/shop/create', async (req, res) => {
   const {name, price, image} = req.body;
   const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
-  console.log(name, price, image);
   var result = await client.db(dbName).collection('shop').insertOne({
     name: name,
     price: price,
