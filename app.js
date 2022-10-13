@@ -16,7 +16,6 @@ app.post('/api/user/create', async (req, res) => {
   const teamId = 1;
   const role = 3;
   const result = await insertUser(firstname, lastname, companyName, points, totalPoints, teamId, role);
-
   res.send(result);
 });
 
@@ -97,6 +96,23 @@ app.get('/api/events/getAllById/:id', async (req, res) => {
   res.send(response);
 });
 
+app.get('/api/shop/getAll', async (req, res) => {
+  console.log("response");
+  const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
+  const response = await client.db(dbName).collection('shop').find({}).toArray();
+  res.send(response);
+});
 
+app.post('/api/shop/create', async (req, res) => {
+  const {name, price, image} = req.body;
+  const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
+  console.log(name, price, image);
+  var result = await client.db(dbName).collection('shop').insertOne({
+    name: name,
+    price: price,
+    image: image
+  });
+  res.send(result);
+});
 
 module.exports = app;
