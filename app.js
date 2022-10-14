@@ -130,4 +130,22 @@ app.post('/api/shop/create', async (req, res) => {
   res.send(result);
 });
 
+app.post('/api/step/create', async(req, res) => {
+  const {name, points, image} = req.body;
+  const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
+  var result = await client.db(dbName).collection('step').insertOne({
+    name: name,
+    points: points,
+    image: image
+  });
+  res.send(result);
+});
+
+app.get('/api/step/getAll', async(req, res) => {
+  const {name, points, image} = req.body;
+  const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
+  var result = await client.db(dbName).collection('step').find({}).toArray();
+  res.send(result);
+})
+
 module.exports = app;
