@@ -8,6 +8,11 @@ const dbName = 'dailycieux';
 app.use(express.json());
 app.use(cors());
 
+app.get('/', async (req, res) => {
+ res.send("coucou");
+
+});
+
 async function insertUser(firstname, lastname, companyName, teamId, role, points, totalPoints, redeemed) {
   if (teamId === null) { return 'Invalid value for teamId'; }
   if (role === null || role === NaN || typeof role != 'number') { return 'Invalid value for role'; }
@@ -139,11 +144,11 @@ app.post('/api/events/create', async (req, res) => {
   res.send(result);
 });
 
-app.get('/api/events/getAllById/:id', async (req, res) => {
+app.get('/api/events/getAll', async (req, res) => {
   const id = req.params.id;
   try {
     const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
-    const response = await client.db(dbName).collection('events').find({ teamId: new mongodb.ObjectId(id) }).toArray();
+    const response = await client.db(dbName).collection('events').find({}).toArray();
     res.send(response);
   } catch (error) {
     return res.send(JSON.stringify({ error: 'Invalid value for id' }));
