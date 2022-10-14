@@ -8,7 +8,7 @@ const dbName = 'dailycieux';
 app.use(express.json());
 app.use(cors());
 
-async function insertUser(firstname, lastname, companyName, teamId, role, points, totalPoints) {
+async function insertUser(firstname, lastname, companyName, teamId, role, points, totalPoints, redeemed) {
   if (teamId === null) { return 'Invalid value for teamId'; }
   if (role === null || role === NaN || typeof role != 'number') { return 'Invalid value for role'; }
   if (points === null || points === NaN || typeof points != 'number') { return 'Invalid value for points'; }
@@ -21,9 +21,29 @@ async function insertUser(firstname, lastname, companyName, teamId, role, points
     points: points,
     totalPoints: totalPoints,
     teamId: teamId,
-    role: role
+    role: role,
+    redeemed: redeemed ?? false
   });
   return result.insertedId;
+}
+
+async function updateUser(firstname, lastname, companyName, teamId, role, points, totalPoints, redeemed) {
+  if (teamId === null) { return false; }
+  if (role === null || role === NaN || typeof role != 'number') { return false; }
+  if (points === null || points === NaN || typeof points != 'number') { return false; }
+  if (totalPoints === null || totalPoints === NaN || typeof totalPoints != 'number') { return false; }
+  const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
+  await client.db(dbName).collection('users').findOneAndUpdate({_id:mongodb.ObjectId("63487ed4ea34954bc412bc8f")}, {$set:{
+    firstname: firstname,
+    lastname: lastname,
+    companyName: companyName,
+    points: points,
+    totalPoints: totalPoints,
+    teamId: teamId,
+    role: role,
+    redeemed: redeemed
+  }});
+  return true;
 }
 
 app.post('/api/user/create', async (req, res) => {
@@ -35,7 +55,8 @@ app.post('/api/user/create', async (req, res) => {
   const totalPoints = 0;
   const role = 3;
   const teamId = 'Dailycieux'
-  const result = await insertUser(firstname, lastname, companyName, teamId, role, points, totalPoints);
+  const redeemed = false;
+  const result = await insertUser(firstname, lastname, companyName, teamId, role, points, totalPoints, redeemed);
   res.send(result);
 });
 
@@ -44,6 +65,22 @@ app.get('/api/user/:id', async (req, res) => {
   const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
   try {
     const response = await client.db(dbName).collection('users').findOne({ _id: new mongodb.ObjectId(id) });
+    res.send(response);
+  } catch (error) {
+    return res.send(JSON.stringify({ error: 'Invalid value for id' }));
+  }
+});
+
+
+app.get('/api/user/redeem/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
+  const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
+  try {
+    const response = await client.db(dbName).collection('users').findOne({ _id: new mongodb.ObjectId(id) });
+    response.redeemed = true;
+    updateUser(response.firstname, response.lastname, response.companyName, response.teamId, response.role, response.points, response.totalPoints, true)
+    console.log(response);
     res.send(response);
   } catch (error) {
     return res.send(JSON.stringify({ error: 'Invalid value for id' }));
