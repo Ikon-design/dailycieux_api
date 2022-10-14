@@ -32,8 +32,10 @@ async function updateUser(firstname, lastname, companyName, teamId, role, points
   if (role === null || role === NaN || typeof role != 'number') { return false; }
   if (points === null || points === NaN || typeof points != 'number') { return false; }
   if (totalPoints === null || totalPoints === NaN || typeof totalPoints != 'number') { return false; }
+  try {
+    
   const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
-  await client.db(dbName).collection('users').findOneAndUpdate({_id:mongodb.ObjectId("63487ed4ea34954bc412bc8f")}, {$set:{
+  await client.db(dbName).collection('users').updateOne({_id:mongodb.ObjectId("63487ed4ea34954bc412bc8f")}, {$set:{
     firstname: firstname,
     lastname: lastname,
     companyName: companyName,
@@ -44,6 +46,9 @@ async function updateUser(firstname, lastname, companyName, teamId, role, points
     redeemed: redeemed
   }});
   return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 app.post('/api/user/create', async (req, res) => {
@@ -78,10 +83,8 @@ app.get('/api/user/redeem/:id', async (req, res) => {
   const client = await mongodb.MongoClient.connect(url, { useNewUrlParser: true });
   try {
     const response = await client.db(dbName).collection('users').findOne({ _id: new mongodb.ObjectId(id) });
-    response.redeemed = true;
-    updateUser(response.firstname, response.lastname, response.companyName, response.teamId, response.role, response.points, response.totalPoints, true)
-    console.log(response);
-    res.send(response);
+    var redeemed = await updateUser(response.firstname, response.lastname, response.companyName, response.teamId, response.role, response.points, response.totalPoints, true);
+    return res.send(redeemed);
   } catch (error) {
     return res.send(JSON.stringify({ error: 'Invalid value for id' }));
   }
